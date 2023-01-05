@@ -1,0 +1,37 @@
+#include <cmath>
+
+double normcdf(double x) {
+  return 0.5 * (1 + std::erf(x / std::sqrt(2)));
+}
+
+
+class Option {
+ public:
+  Option(double strike_price, double time_to_maturity, double risk_free_rate, double volatility)
+      : strike_price_(strike_price),
+        time_to_maturity_(time_to_maturity),
+        risk_free_rate_(risk_free_rate),
+        volatility_(volatility) {}
+
+  double CallPrice(double spot_price) const {
+    double d1 = (std::log(spot_price / strike_price_) +
+                 (risk_free_rate_ + 0.5 * volatility_ * volatility_) * time_to_maturity_) /
+                (volatility_ * std::sqrt(time_to_maturity_));
+    double d2 = d1 - volatility_ * std::sqrt(time_to_maturity_);
+    return spot_price * std::normcdf(d1) - strike_price_ * std::exp(-risk_free_rate_ * time_to_maturity_) * std::normcdf(d2);
+  }
+
+  double PutPrice(double spot_price) const {
+    double d1 = (std::log(spot_price / strike_price_) +
+                 (risk_free_rate_ + 0.5 * volatility_ * volatility_) * time_to_maturity_) /
+                (volatility_ * std::sqrt(time_to_maturity_));
+    double d2 = d1 - volatility_ * std::sqrt(time_to_maturity_);
+    return strike_price_ * std::exp(-risk_free_rate_ * time_to_maturity_) * std::normcdf(-d2) - spot_price * std::normcdf(-d1);
+  }
+
+ private:
+  double strike_price_;
+  double time_to_maturity_;
+  double risk_free_rate_;
+  double volatility_;
+};
