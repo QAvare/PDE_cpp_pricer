@@ -10,5 +10,8 @@ utils.o: utils.h utils.cpp
 Matrix.o: Matrix.h Matrix.cpp
 	g++ -c -Wall --std=c++17 Matrix.cpp -o bin/Matrix.o
 
+class_options.o: class_options.h class_options.cpp
+	g++ -c -Wall --std=c++17 class_options.cpp -o bin/class_options.o
+
 clean:
 	rm -rf bin/*.o bin/main *.o
