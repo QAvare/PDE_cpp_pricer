@@ -1,7 +1,7 @@
-all: main.o utils.o Matrix.o
-	g++ -o bin/main bin/main.o bin/utils.o bin/Matrix.o
+all: main.o utils.o Matrix.o class_options.o
+	g++ -o bin/main bin/main.o bin/utils.o bin/class_options.o bin/Matrix.o
 
-main.o: main.cpp utils.o Matrix.o
+main.o: main.cpp utils.o Matrix.o class_options.o
 	g++ -c -Wall --std=c++17 main.cpp -o bin/main.o
 
 utils.o: utils.h utils.cpp
