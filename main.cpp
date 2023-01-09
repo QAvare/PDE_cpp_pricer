@@ -8,6 +8,7 @@
 #include <iostream>
 #include "Matrix.h"
 #include "bs_price.h"
+#include "pde_pricer.h"
 
 using namespace std;
 
@@ -46,13 +47,28 @@ int main(int argc, char **argv){
     double S = 100;  
     double K = 110;
     double q = 0;  
-    double r = 0.05;  
+    double r = 0.005;  
     double sigma = 0.3; 
     double T = 1;
     char callPutFlag = 'c';
 
 
     std::cout << "Price of the call: " << blackScholes(callPutFlag, S, K,  r, q, sigma,  T) << std::endl;
+
+    pde_pricer pricer = pde_pricer(
+        S,
+        K,
+        r,
+        sigma,
+        T,
+        4,
+        6,
+        6
+    );
+
+    pricer.initPricerCall();
+
+    pricer.print();
 
     return 0;
 };
