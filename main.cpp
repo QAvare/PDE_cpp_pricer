@@ -6,7 +6,6 @@
 
 */
 #include <iostream>
-#include "utils.h"
 #include "Matrix.h"
 #include "bs_price.h"
 
