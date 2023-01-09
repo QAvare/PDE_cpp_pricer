@@ -1,3 +1,6 @@
+#ifndef _MATRIX_H_
+#define _MATRIX_H_
+
 #include <vector>
 #include <cmath>
 
@@ -23,3 +26,5 @@ private:
     int cols_;
     double **data_;
 };
+
+#endif
