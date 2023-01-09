@@ -27,4 +27,7 @@ private:
     double **data_;
 };
 
+Matrix operator*(const double x, const Matrix &m);
+Matrix operator+(Matrix a, Matrix b);
+
 #endif

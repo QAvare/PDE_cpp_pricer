@@ -56,6 +56,23 @@ Matrix operator*(const double x, const Matrix &m)
     }
     return mult;
 }
+Matrix operator+(Matrix a, Matrix b)
+{   
+    if (a.cols() != b.cols() && a.rows() != b.rows())
+    {
+        cout << "Wrong size";
+        exit(1);
+    }
+    Matrix add = a;
+    for (int i = 0; i < a.rows(); i++)
+    {
+        for (int j = 0; j < a.cols(); j++)
+        {
+            add(i, j) = a(i, j) + b(i, j);
+        }
+    }
+    return add;
+}
 
 // Return the number of rows in the matrix
 int Matrix::rows() const { return rows_; }
