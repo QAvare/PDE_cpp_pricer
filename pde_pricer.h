@@ -11,6 +11,8 @@ private:
     int lambda;
     int n;
     int m;
+    
+    double theta;
 
     Matrix time_matrix;
     Matrix x_matrix;
@@ -35,6 +37,13 @@ public:
 
     void print();
     void initPricerCall(); //init pricer Matrix and limit conditions
-    Matrix priceCall(); // 1step price
+
+    void compute_P();
+    void compute_Q();
+    void compute_V(double t);
+
+    Matrix x_t(double t); // compute x(t)
+    Matrix getNextU(); // one step get U(i+1)
+    Matrix priceCall();
 
 };
