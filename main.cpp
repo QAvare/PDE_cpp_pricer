@@ -6,8 +6,8 @@
 
 */
 #include <iostream>
-#include "utils.h"
 #include "Matrix.h"
+#include "bs_price.h"
 
 using namespace std;
 
@@ -41,6 +41,18 @@ int main(int argc, char **argv){
     A.print();
     cout << "\n" << endl;
     C.print();
+
+    // BS pricer test
+    double S = 100;  
+    double K = 110;
+    double q = 0;  
+    double r = 0.05;  
+    double sigma = 0.3; 
+    double T = 1;
+    char callPutFlag = 'c';
+
+
+    std::cout << "Price of the call: " << blackScholes(callPutFlag, S, K,  r, q, sigma,  T) << std::endl;
 
     return 0;
 };
