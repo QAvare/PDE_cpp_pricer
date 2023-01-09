@@ -12,8 +12,8 @@
 
 using namespace std;
 
-
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
 
     // Matrix test;
     Matrix A = Matrix(3, 4);
@@ -37,23 +37,24 @@ int main(int argc, char **argv){
     A(2, 3) = 3;
 
     Matrix C = B.dot(A);
-    (B * 0.5).print();
-    cout << "\n" << endl;
+    (0.5 * B).print();
+    cout << "\n"
+         << endl;
     A.print();
-    cout << "\n" << endl;
+    cout << "\n"
+         << endl;
     C.print();
 
     // BS pricer test
-    double S = 100;  
+    double S = 100;
     double K = 110;
-    double q = 0;  
-    double r = 0.005;  
-    double sigma = 0.3; 
+    double q = 0;
+    double r = 0.005;
+    double sigma = 0.3;
     double T = 1;
     char callPutFlag = 'c';
 
-
-    std::cout << "Price of the call: " << blackScholes(callPutFlag, S, K,  r, q, sigma,  T) << std::endl;
+    std::cout << "Price of the call: " << blackScholes(callPutFlag, S, K, r, q, sigma, T) << std::endl;
 
     pde_pricer pricer = pde_pricer(
         S,
@@ -61,14 +62,16 @@ int main(int argc, char **argv){
         r,
         sigma,
         T,
-        4,
         6,
-        6
-    );
+        100,
+        100);
 
     pricer.initPricerCall();
-
     pricer.print();
+    Matrix u = pricer.priceCall();
+
+    cout << "matrice u a t=0 \n";
+    u.print();
 
     return 0;
 };
