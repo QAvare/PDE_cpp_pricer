@@ -58,11 +58,12 @@ void pde_pricer::print()
     cout << "n " << this->n << endl;
     cout << "m " << this->m << endl;
 
-    x_matrix.print();
-    time_matrix.print();
-    U.print();
-    Q.print();
-    P.print();
+    //x_matrix.print();
+    //time_matrix.print();
+    //U.print();
+    //Q.print();
+    //P.print();
+    V.print();
     cout << "\n";
 }
 
@@ -71,9 +72,8 @@ Matrix pde_pricer::x_t(double t)
     Matrix x(1, m);
     for (int i = 0; i < m; i++)
     {
-        float d = (float)i / m;
-        double s = spot - lambda * vol + 2 * d * lambda * vol;
-        x(0, i) = log(s / spot) - t * rate;
+        float d = (float)i / (m-1);
+        x(0, i) = -lambda*vol + (2*lambda*vol)*d;
     }
     return x;
 }
@@ -94,14 +94,15 @@ void pde_pricer::initPricerCall()
     for (int k = 0; k < m - 1; k++)
     {
         double F = spot * exp(x_matrix(0, k) + rate * T);
-        U(k, 0) = exp(-rate * T) * max(F - strike, 0.0);
+        U(k, 0) = max(F - strike, 0.0);
+        // U(k, 0) = exp(-rate * T) * max(F - strike, 0.0);
         // cout << F - strike;
     }
     // V matrix
     // V(0, 0) = 0;
     // V(m - 2, 0) = (b / (get_dx(x_matrix, m - 2) + get_dx(x_matrix, m - 1))) + (2 * theta * c / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * spot * exp(x_matrix(0, m)) - exp(-rate) + (((1 - theta) * c) / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * spot * exp(x_matrix(0, m));
     compute_V(T);
-
+    U.print();
     // Q matrix
     compute_Q();
 
@@ -133,7 +134,7 @@ void pde_pricer::compute_P()
 
 void pde_pricer::compute_Q()
 {
-    double b = 0.5 * pow(vol, 2);
+    double b = -0.5 * pow(vol, 2);
     double c = -b;
     for (int j = 0; j < m - 1; j++)
     {
@@ -148,17 +149,17 @@ void pde_pricer::compute_Q()
 
 void pde_pricer::compute_V(double t)
 {
-    double b = 0.5 * pow(vol, 2);
+    double b = -0.5 * pow(vol, 2);
     double c = -b;
 
     V(0, 0) = 0;
-    V(m - 2, 0) = (b / (get_dx(x_matrix, m - 2) + get_dx(x_matrix, m - 1))) + (2 * theta * c / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * (spot * exp(x_matrix(0, m)) - exp(-(T - t) * rate)) + (((1 - theta) * c) / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * (spot * exp(x_matrix(0, m)) - exp(-(T - (t + T / n)) * rate));
+    V(m - 2, 0) = ((-b / (get_dx(x_matrix, m - 2) + get_dx(x_matrix, m - 1))) + 2 * theta * c / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * (spot * exp(x_matrix(0, m) + rate*(T-T/n)) - strike*exp(-(T - T/n) * rate)) + (((1 - theta) * c) / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * (spot * exp(x_matrix(0, m) + rate*T) - strike*exp(-T*rate));
 }
 
 Matrix pde_pricer::priceCall()
 {
     // initPricerCall();
-    Matrix nextU(m - 1, 1);
+    // Matrix nextU(m - 1, 1);
     U = getNextU();
 
     for (int i = m - 1; i >= 0; i--)
