@@ -35,7 +35,7 @@ int main(int argc, char **argv)
          << endl;
     //A.print();
     C=C.Invert();
-    C.print();
+    //C.print();
 
     // BS pricer test
     double S = 100;
@@ -59,10 +59,11 @@ int main(int argc, char **argv)
         100);
 
     pricer.initPricerCall();
+    cout << "\nPricer characteristics : " << endl;
     pricer.print();
     Matrix u = pricer.priceCall();
 
-    cout << "matrice u a t=0 \n";
+    cout << "\nmatrice U a t=0 \n";
     u.print();
 
     return 0;

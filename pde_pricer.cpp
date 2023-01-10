@@ -63,7 +63,7 @@ void pde_pricer::print()
     //U.print();
     //Q.print();
     //P.print();
-    V.print();
+    U.print();
     cout << "\n";
 }
 
@@ -102,7 +102,8 @@ void pde_pricer::initPricerCall()
     // V(0, 0) = 0;
     // V(m - 2, 0) = (b / (get_dx(x_matrix, m - 2) + get_dx(x_matrix, m - 1))) + (2 * theta * c / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * spot * exp(x_matrix(0, m)) - exp(-rate) + (((1 - theta) * c) / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * spot * exp(x_matrix(0, m));
     compute_V(T);
-    U.print();
+    //cout << "\nMatrix U : " << endl;
+    //U.print();
     // Q matrix
     compute_Q();
 
