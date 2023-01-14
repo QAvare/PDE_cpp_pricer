@@ -8,13 +8,21 @@ using namespace std;
 
 // utils functions
 
-double get_dx(Matrix x, int j)
+Matrix treshold(Matrix u, double lower, double upper)
 {
-    if (x.cols() < j || j < 0)
+    Matrix uu = u;
+    for (int j = 0; j < uu.rows(); j++)
     {
-        exit(1);
+        if (uu(j, 0) < -lower )
+        {
+            uu(j, 0) = lower;
+        }
+        if (abs(uu(j, 0)) > upper)
+        {
+            uu(j, 0) = upper;
+        }
     }
-    return x(0, j + 1) - x(0, j);
+    return uu;
 }
 
 // --------------- //
@@ -38,8 +46,11 @@ pde_pricer::pde_pricer(
     this->n = n;
     this->m = m;
 
-    this->time_matrix = Matrix(1, n);
-    this->x_matrix = Matrix(1, m);
+    this->theta = 0.5;
+
+    this->time_matrix = Matrix(1, n + 1);
+    this->x_matrix = Matrix(1, m + 1);
+    this->dx = Matrix(1, m + 1);
 
     this->P = Matrix(m - 1, m - 1);
     this->Q = Matrix(m - 1, m - 1);
@@ -58,55 +69,55 @@ void pde_pricer::print()
     cout << "n " << this->n << endl;
     cout << "m " << this->m << endl;
 
-    //x_matrix.print();
-    //time_matrix.print();
-    //U.print();
-    //Q.print();
-    //P.print();
+    cout << "The x array: \n";
+    x_matrix.print();
+    cout << "The V matrix: \n";
+    V.print();
+    cout << "The U array: \n";
     U.print();
     cout << "\n";
 }
 
-Matrix pde_pricer::x_t(double t)
+Matrix pde_pricer::compute_x()
 {
-    Matrix x(1, m);
-    for (int i = 0; i < m; i++)
+    Matrix x(1, m + 1);
+    for (int i = 0; i <= m; i++)
     {
-        float d = (float)i / (m-1);
-        x(0, i) = -lambda*vol + (2*lambda*vol)*d;
+        x(0, i) = - lambda * vol + (2 * lambda * vol / m) * i;
+    }
+    return x;
+}
+
+Matrix pde_pricer::compute_dx()
+{
+    Matrix x = this->dx;
+    double d = 1.0 / (m + 1);
+    for (int i = 0; i <= m; i++)
+    {
+        x(0, i) = (lambda * vol) * d;
     }
     return x;
 }
 
 void pde_pricer::initPricerCall()
 {
-    double b = 0.5 * pow(vol, 2);
-    double c = -b;
-    double theta = 0.5;
+    x_matrix = compute_x(); // init x array
+    dx = compute_dx(); // init dx array
 
-    x_matrix = x_t(T); // init x array
-
-    for (int j = 0; j < n; j++)
+    for (int j = 0; j < time_matrix.cols(); j++)
     {
-        time_matrix(0, j) = (T / n) * j;
+        time_matrix(0, j) = (T / n + 1) * j;
     }
     // U matrix
     for (int k = 0; k < m - 1; k++)
     {
         double F = spot * exp(x_matrix(0, k) + rate * T);
         U(k, 0) = max(F - strike, 0.0);
-        // U(k, 0) = exp(-rate * T) * max(F - strike, 0.0);
-        // cout << F - strike;
     }
     // V matrix
-    // V(0, 0) = 0;
-    // V(m - 2, 0) = (b / (get_dx(x_matrix, m - 2) + get_dx(x_matrix, m - 1))) + (2 * theta * c / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * spot * exp(x_matrix(0, m)) - exp(-rate) + (((1 - theta) * c) / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * spot * exp(x_matrix(0, m));
     compute_V(T);
-    //cout << "\nMatrix U : " << endl;
-    //U.print();
     // Q matrix
     compute_Q();
-
     // P matrix
     compute_P();
 }
@@ -120,15 +131,15 @@ Matrix pde_pricer::getNextU()
 
 void pde_pricer::compute_P()
 {
-    double b = 0.5 * pow(vol, 2);
+    double b = -0.5 * pow(vol, 2);
     double c = -b;
     for (int j = 0; j < m - 1; j++)
     {
-        P(j, j) = -(n / T) - (2 * theta * c / (get_dx(x_matrix, j) * get_dx(x_matrix, j + 1)));
+        P(j, j) = -(n / T) - (2 * theta * c / (dx(0, j) * dx(0, j + 1)));
         if (j < m - 2)
         {
-            P(j, j + 1) = (b / (get_dx(x_matrix, j) + get_dx(x_matrix, j + 1))) + (2 * theta * c / (get_dx(x_matrix, j) * get_dx(x_matrix, j + 1)));
-            P(j + 1, j) = -(b / (get_dx(x_matrix, j + 1) + get_dx(x_matrix, j + 2))) + (2 * theta * c / (get_dx(x_matrix, j + 1) * get_dx(x_matrix, j + 2)));
+            P(j, j + 1) = (b / (dx(0, j) + dx(0, j + 1))) + (2 * theta * c / (dx(0, j) * dx(0, j + 1)));
+            P(j + 1, j) = -(b / (dx(0, j + 1) + dx(0, j + 2))) + (2 * theta * c / (dx(0, j + 1) * dx(0, j + 2)));
         }
     }
 }
@@ -139,11 +150,11 @@ void pde_pricer::compute_Q()
     double c = -b;
     for (int j = 0; j < m - 1; j++)
     {
-        Q(j, j) = (n / T) - (2 * (1 - theta) * c) / (get_dx(x_matrix, j) * get_dx(x_matrix, j + 1));
+        Q(j, j) = (n / T) - (2 * (1 - theta) * c) / (dx(0, j) * dx(0, j + 1));
         if (j < m - 2)
         {
-            Q(j, j + 1) = (1 - theta) * c / (get_dx(x_matrix, j) * get_dx(x_matrix, j + 1));
-            Q(j + 1, j) = (1 - theta) * c / (get_dx(x_matrix, j + 1) * get_dx(x_matrix, j + 2));
+            Q(j, j + 1) = (1 - theta) * c / (dx(0, j) * dx(0, j + 1));
+            Q(j + 1, j) = (1 - theta) * c / (dx(0, j + 1) * dx(0, j + 2));
         }
     }
 }
@@ -154,23 +165,24 @@ void pde_pricer::compute_V(double t)
     double c = -b;
 
     V(0, 0) = 0;
-    V(m - 2, 0) = ((-b / (get_dx(x_matrix, m - 2) + get_dx(x_matrix, m - 1))) + 2 * theta * c / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * (spot * exp(x_matrix(0, m) + rate*(T-T/n)) - strike*exp(-(T - T/n) * rate)) + (((1 - theta) * c) / (get_dx(x_matrix, m - 2) * get_dx(x_matrix, m - 1))) * (spot * exp(x_matrix(0, m) + rate*T) - strike*exp(-T*rate));
+    V(m - 2, 0) = ((-b / (dx(0, m - 2) + dx(0, m - 1))) + 2 * theta * c / (dx(0, m - 2) * dx(0, m - 1))) * (spot * exp(x_matrix(0, m) + rate*(T - t - T/n)) - strike*exp(-(T - t - T/n) * rate)) + (((1 - theta) * c) / (dx(0, m - 2) * dx(0, m - 1))) * (spot * exp(x_matrix(0, m) /*+ rate*T*/) - strike*exp((-T + t) * rate));
 }
 
 Matrix pde_pricer::priceCall()
 {
     // initPricerCall();
-    // Matrix nextU(m - 1, 1);
     U = getNextU();
 
-    for (int i = m - 1; i >= 0; i--)
+    for (int i = n; i >= 0; i--)
     {
         double t = time_matrix(0, i);
-        x_matrix = x_t(t);
+        x_matrix = compute_x();
         compute_P();
         compute_Q();
         compute_V(t);
         U = getNextU();
+        // for stability:
+        U = treshold(U, 0.0001, 100000);
     }
     return U;
 }

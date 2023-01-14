@@ -16,6 +16,7 @@ private:
 
     Matrix time_matrix;
     Matrix x_matrix;
+    Matrix dx;
     Matrix u;
     Matrix P;
     Matrix V;
@@ -42,7 +43,8 @@ public:
     void compute_Q();
     void compute_V(double t);
 
-    Matrix x_t(double t); // compute x(t)
+    Matrix compute_x(); // compute x
+    Matrix compute_dx(); // compute dx
     Matrix getNextU(); // one step get U(i+1)
     Matrix priceCall();
 

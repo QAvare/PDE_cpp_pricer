@@ -28,6 +28,12 @@ Matrix::Matrix(int m, int n)
 // Access element at ith row and jth column
 double &Matrix::operator()(int i, int j)
 {
+    if (i >= rows_ || j >= cols_)
+    {
+        cout << "Invalid i or j: \n";
+        cout << "called with " << i << " " << j << "\n";
+        exit(1);
+    }
     return data_[i][j];
 }
 
